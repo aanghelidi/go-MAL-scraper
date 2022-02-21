@@ -39,7 +39,7 @@ func main() {
 	// Add a detail collector to scrape specific anime information
 	detailCollector := c.Clone()
 
-	c.OnHTML("div[class=genre-link] > div > div > a[href]", func(e *colly.HTMLElement) {
+	c.OnHTML("a[href][class=genre-name-link]", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
 		fmt.Printf("Link found: %q -> %s\n", e.Text, link)
 		c.Visit(e.Request.AbsoluteURL(link))
