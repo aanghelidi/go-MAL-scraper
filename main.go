@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gocolly/colly/v2"
+	"github.com/gocolly/colly/v2/extensions"
 )
 
 type AnimeInfo struct {
@@ -27,16 +28,28 @@ type AnimeInfo struct {
 
 func main() {
 	c := colly.NewCollector(
-		// Restrict domains to myanimelist.net
-		colly.AllowedDomains("myanimelist.net", "www.myanimelist.net"),
+		// TODO: Add Redis Backend
 		// Local cache to prevent multiples download
 		colly.CacheDir("./my_anime_list_cache"),
-		// Limit to depth 2 to control parallel
+		// Uncomment to add a debugger
+		// colly.Debugger(&debug.LogDebugger{}),
+		colly.Async(true),
 		colly.MaxDepth(2),
-		colly.Async(),
 	)
 
-	// Add a detail collector to scrape specific anime information
+	c.Limit(&colly.LimitRule{
+		// Restrict domains to myanimelist.net
+		DomainGlob: "*myanimelist.*",
+		// Add a random delay
+		RandomDelay: 5 * time.Second,
+		// Add parallelism
+		Parallelism: 2,
+	})
+
+	// Generate a random user agent on every request
+	extensions.RandomUserAgent(c)
+
+	//Add a detail collector to scrape specific anime information
 	detailCollector := c.Clone()
 
 	c.OnHTML("a[href][class=genre-name-link]", func(e *colly.HTMLElement) {
@@ -55,7 +68,6 @@ func main() {
 
 	c.OnHTML("a[href][class=link-title]", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
-		fmt.Printf("Link found: %q -> %s\n", e.Text, link)
 		if strings.Index(link, "myanimelist.net/anime/") != -1 {
 			parts := strings.Split(link, "/")
 			N := len(parts)
