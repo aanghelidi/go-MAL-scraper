@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
@@ -13,94 +12,8 @@ import (
 	"github.com/gocolly/colly/v2/extensions"
 )
 
-var animeUrl string
-
-func init() {
-	flag.StringVar(&animeUrl, "animeUrl", "https://foo/bar", "The animeUrl page that you want to parse")
-}
-
-type AnimeInfo struct {
-	Synopsis    string
-	Type        string
-	From        time.Time
-	To          time.Time
-	Producers   []string
-	Licensors   []string
-	Studios     []string
-	Source      string
-	Genres      []string
-	Themes      []string
-	Demographic []string
-	Duration    int // in minutes
-	Rating      string
-}
-
-func CleanSynopsis(s string) (cleanedSynopsis string) {
-	cleanedSynopsis = strings.TrimSpace(strings.Split(s, "\n")[0])
-	return
-}
-
-func GetDivInfo(s string) (divInfo string) {
-	lines := strings.Split(strings.TrimSpace(s), "\n")
-	divInfo = strings.TrimSpace(lines[1])
-	if strings.Contains(divInfo, "None found") {
-		divInfo = "null"
-	}
-	return
-}
-
-func GetDivInfoNested(s *goquery.Selection) (divInfoNested []string) {
-	divInfoNested = make([]string, 0)
-	s.Find("a[href]").Each(func(_ int, is *goquery.Selection) {
-		divInfoNested = append(divInfoNested, is.Text())
-	})
-	return
-}
-
-func ExtractFromToDates(s string) (from time.Time, to time.Time, err error) {
-	shortLayout := "Jan 2, 2006"
-
-	lines := strings.Split(strings.TrimSpace(s), "\n")
-	dates := strings.TrimSpace(lines[1])
-	parts := strings.Split(dates, " to ")
-	if len(parts) == 1 {
-		is := parts[0]
-		if matched, _ := regexp.MatchString(`[0-9]{4}`, is); matched {
-			shortLayout = "2006"
-			year, err := time.Parse(shortLayout, is)
-			if err != nil {
-				return time.Time{}, time.Time{}, err
-			}
-			return year, time.Time{}, err
-		}
-		from, err = time.Parse(shortLayout, is)
-		if err != nil {
-			return time.Time{}, time.Time{}, err
-		}
-		return from, time.Time{}, err
-	}
-	fromString := parts[0]
-	if fromString == "?" {
-		from = time.Time{}
-	} else {
-		from, err = time.Parse(shortLayout, fromString)
-		if err != nil {
-			return time.Time{}, time.Time{}, err
-		}
-	}
-	toString := parts[1]
-	if toString == "?" {
-		to = time.Time{}
-	} else {
-		to, err = time.Parse(shortLayout, parts[1])
-		if err != nil {
-			return time.Time{}, time.Time{}, err
-		}
-	}
-	return from, to, nil
-}
-
 func main() {
+
 	c := colly.NewCollector(
 		// TODO: Add Redis Backend
 		// Local cache to prevent multiples download
@@ -108,14 +21,14 @@ func main() {
 		// Uncomment to add a debugger
 		//colly.Debugger(&debug.LogDebugger{}),
 		colly.Async(true),
-		colly.MaxDepth(2),
+		colly.MaxDepth(1),
 	)
 
 	c.Limit(&colly.LimitRule{
 		// Restrict domains to myanimelist.net
 		DomainGlob: "*myanimelist.*",
 		// Add a random delay
-		RandomDelay: 15 * time.Second,
+		RandomDelay: 5 * time.Second,
 		// Add parallelism
 		Parallelism: 2,
 	})
@@ -229,10 +142,11 @@ func main() {
 	})
 
 	// Parse flag
+	var animeUrl string
+	flag.StringVar(&animeUrl, "animeUrl", "https://foo/bar", "The animeUrl page that you want to parse")
 	flag.Parse()
 	if animeUrl != "https://foo/bar" {
 		detailCollector.Visit(animeUrl)
-		detailCollector.Wait()
 	}
 	c.Visit("https://myanimelist.net/anime.php#")
 	c.Wait()
