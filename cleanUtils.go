@@ -39,8 +39,6 @@ func ExtractFromToDates(s string) (from time.Time, to time.Time, err error) {
 	if len(parts) == 1 {
 		is := parts[0]
 		if matched, _ := regexp.MatchString(`[0-9]{4}`, is); matched && len(is) == 4 {
-			if strings.Index(",", is) != -1 {
-			}
 			shortLayout = "2006"
 			year, err := time.Parse(shortLayout, is)
 			if err != nil {
