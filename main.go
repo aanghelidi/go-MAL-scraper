@@ -104,6 +104,7 @@ func main() {
 				fmt.Println("Episodes: ", GetDivInfo(s.Text()))
 			case "Status":
 				fmt.Println("Status: ", GetDivInfo(s.Text()))
+			// TODO: just return in raw text format, to be processed later
 			case "Aired":
 				from, to, err := ExtractFromToDates(s.Text())
 				if err != nil {
