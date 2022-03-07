@@ -106,12 +106,13 @@ func main() {
 				fmt.Println("Status: ", GetDivInfo(s.Text()))
 			// TODO: just return in raw text format, to be processed later
 			case "Aired":
-				from, to, err := ExtractFromToDates(s.Text())
-				if err != nil {
-					log.Fatal(err)
-				}
-				fmt.Println("From: ", from)
-				fmt.Println("To: ", to)
+				fmt.Println("Aired: ", GetDivInfo(s.Text()))
+				// from, to, err := ExtractFromToDates(s.Text())
+				// if err != nil {
+				// 	log.Fatal(err)
+				// }
+				// fmt.Println("From: ", from)
+				// fmt.Println("To: ", to)
 			case "Premiered":
 				fmt.Println("Premiered: ", GetDivInfo(s.Text()))
 			case "Broadcast":
