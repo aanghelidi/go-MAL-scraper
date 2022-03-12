@@ -28,7 +28,7 @@ func main() {
 		// Restrict domains to myanimelist.net
 		DomainGlob: "*myanimelist.*",
 		// Add a random delay
-		RandomDelay: 5 * time.Second,
+		RandomDelay: 15 * time.Second,
 		// Add parallelism
 		Parallelism: 2,
 	})
