@@ -1,6 +1,6 @@
 # go-MAL-scraper
-A go scrapper using `Colly` to scrape MyAnimelist website information.
-For each anime page the scrapper will fetch the following informations if there are present:
+A go scraper using `Colly` to scrape MyAnimelist website information.
+For each anime page the scraper will fetch the following informations if there are present:
 
 - title
 - jtitle , its japanese variation
@@ -25,5 +25,3 @@ For each anime page the scrapper will fetch the following informations if there 
 - popularity, its popularity
 - members, how many members are on this anime page
 - favorites, how many members put this anime as favourite
-
-## How
