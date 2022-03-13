@@ -133,7 +133,7 @@ func main() {
 			enc.SetIndent("", "  ")
 			// Dump json to the standard output
 			enc.Encode(animes)
-			log.Println("Finished writing ", nAnimes, " in the JSON file")
+			log.Println("Finished writing ", nAnimes, " animes in the JSON file")
 			os.Exit(0)
 		}
 
@@ -190,6 +190,7 @@ func main() {
 		})
 		animes = append(animes, anime)
 		count++
+		log.Println("Animes currently parsed: ", count)
 	})
 
 	detailCollector.OnRequest(func(r *colly.Request) {
