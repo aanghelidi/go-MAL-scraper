@@ -1,25 +1,56 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
-	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/extensions"
 )
 
+type Anime struct {
+	Title       string   `json:"title"`
+	JTitle      string   `json:"j_title"`
+	Synopsis    string   `json:"synopsis"`
+	Type        string   `json:"type"`
+	NEpisodes   string   `json:"n_episodes"`
+	Status      string   `json:"status"`
+	Aired       string   `json:"aired"`
+	Premiered   string   `json:"premiered"`
+	Broadcast   string   `json:"broadcast"`
+	Producers   []string `json:"producers"`
+	Licensors   []string `json:"licensors"`
+	Studios     []string `json:"studios"`
+	Source      string   `json:"source"`
+	Genres      []string `json:"genres"`
+	Themes      []string `json:"themes"`
+	Demographic []string `json:"demographic"`
+	Duration    string   `json:"duration"`
+	Rating      string   `json:"rating"`
+	Score       string   `json:"score"`
+	Ranked      string   `json:"ranked"`
+	Popularity  string   `json:"popularity"`
+	Members     string   `json:"members"`
+	Favorites   string   `json:"favourites"`
+}
+
 func main() {
+	fName := "animes.json"
+	file, err := os.Create(fName)
+	if err != nil {
+		log.Fatalf("Cannot create file %q: %s\n", fName, err)
+		return
+	}
+	defer file.Close()
 
 	c := colly.NewCollector(
 		// TODO: Add Redis Backend
 		// Local cache to prevent multiples download
 		colly.CacheDir("./my_anime_list_cache"),
-		// Uncomment to add a debugger
-		//colly.Debugger(&debug.LogDebugger{}),
 		colly.Async(true),
 		colly.MaxDepth(1),
 	)
@@ -37,20 +68,42 @@ func main() {
 	extensions.RandomUserAgent(c)
 
 	//Add a detail collector to scrape specific anime information
-	detailCollector := c.Clone()
+	detailCollector := colly.NewCollector(
+		colly.Async(false),
+		colly.MaxDepth(0),
+	)
+	detailCollector.Limit(&colly.LimitRule{
+		// Restrict domains to myanimelist.net
+		DomainGlob: "*myanimelist.*",
+		// Add a random delay
+		RandomDelay: 15 * time.Second,
+	})
+
+	// Generate a random user agent on every request
+	extensions.RandomUserAgent(detailCollector)
+
+	// Initialization
+	animes := make([]Anime, 0)
+	count := 0
+	// Parse flag
+	var animeUrl string
+	var nAnimes int
+	flag.StringVar(&animeUrl, "animeUrl", "https://foo/bar", "The animeUrl page that you want to parse")
+	flag.IntVar(&nAnimes, "nAnimes", 0, "If different of 0 limit the numbers of animes to parse, defualt to 0")
+	flag.Parse()
 
 	c.OnHTML("a[href][class=genre-name-link]", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
-		fmt.Printf("Link found: %q -> %s\n", e.Text, link)
+		log.Printf("Link found: %q -> %s\n", e.Text, link)
 		c.Visit(e.Request.AbsoluteURL(link))
 	})
 
 	c.OnError(func(r *colly.Response, err error) {
-		fmt.Println("Request URL:", r.Request.URL, "failed with response:", string(r.Body), "\nError:", err)
+		log.Println("Request URL:", r.Request.URL, "failed with response:", string(r.Body), "\nError:", err)
 	})
 
 	c.OnRequest(func(r *colly.Request) {
-		fmt.Println("Visiting", r.URL.String())
+		log.Println("Visiting", r.URL.String())
 	})
 
 	c.OnHTML("a[href][class=link-title]", func(e *colly.HTMLElement) {
@@ -65,86 +118,99 @@ func main() {
 
 	c.OnHTML("a[href][class=link]", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
-		fmt.Printf("Link found: %q -> %s\n", e.Text, link)
+		log.Printf("Link found: %q -> %s\n", e.Text, link)
 		c.Visit(e.Request.AbsoluteURL(link))
 	})
 
 	detailCollector.OnError(func(r *colly.Response, err error) {
-		fmt.Println("Request URL:", r.Request.URL, "failed with response:", string(r.Body), "\nError:", err)
+		log.Println("Request URL:", r.Request.URL, "failed with response:", string(r.Body), "\nError:", err)
 	})
 
-	// Extract japanese title
-	detailCollector.OnHTML("h1.title-name > strong", func(e *colly.HTMLElement) {
-		fmt.Println("Starting parsing an anime page")
-		fmt.Println("")
-		fmt.Println("Title:", e.Text)
-	})
+	detailCollector.OnHTML("div#contentWrapper", func(e *colly.HTMLElement) {
+		// Write JSON if nAnimes is reached
+		if count != 0 && count == nAnimes {
+			enc := json.NewEncoder(file)
+			enc.SetIndent("", "  ")
+			// Dump json to the standard output
+			enc.Encode(animes)
+			log.Println("Finished writing ", nAnimes, " in the JSON file")
+			os.Exit(0)
+		}
 
-	// Extract english title
-	detailCollector.OnHTML("p.title-english", func(e *colly.HTMLElement) {
-		fmt.Println("English title: ", e.Text)
-	})
+		//  Start parsing the page
+		anime := Anime{}
+		anime.JTitle = e.ChildText("h1.title-name > strong")
+		anime.Title = e.ChildText("p.title-english")
+		anime.Synopsis = CleanSynopsis(e.ChildText("p[itemprop=description]"))
 
-	// Extract synopsis
-	detailCollector.OnHTML("p[itemprop=description]", func(e *colly.HTMLElement) {
-		cleanedSynopsis := CleanSynopsis(e.Text)
-		fmt.Println("")
-		fmt.Println("Synopsis: ", cleanedSynopsis)
-		fmt.Println("")
-	})
-
-	// Extract information & statistics
-	detailCollector.OnHTML("div.spaceit_pad", func(e *colly.HTMLElement) {
-		doc := e.DOM
-		doc.Each(func(_ int, s *goquery.Selection) {
-			switch strings.Trim(s.Find("span.dark_text").Text(), ":") {
+		// Extract information and statistics
+		e.ForEach("div.spaceit_pad", func(_ int, s *colly.HTMLElement) {
+			switch strings.Trim(s.ChildText("span.dark_text"), ":") {
 			case "Type":
-				fmt.Println("Type: ", GetDivInfo(s.Text()))
+				anime.Type = GetDivInfo(s.Text)
 			case "Episodes":
-				fmt.Println("Episodes: ", GetDivInfo(s.Text()))
+				anime.NEpisodes = GetDivInfo(s.Text)
 			case "Status":
-				fmt.Println("Status: ", GetDivInfo(s.Text()))
-			// TODO: just return in raw text format, to be processed later
+				anime.Status = GetDivInfo(s.Text)
 			case "Aired":
-				fmt.Println("Aired: ", GetDivInfo(s.Text()))
+				anime.Aired = GetDivInfo(s.Text)
 			case "Premiered":
-				fmt.Println("Premiered: ", GetDivInfo(s.Text()))
+				anime.Premiered = GetDivInfo(s.Text)
 			case "Broadcast":
-				fmt.Println("Broadcast: ", GetDivInfo(s.Text()))
+				anime.Broadcast = GetDivInfo(s.Text)
 			case "Producers":
-				fmt.Println("Producers: ", GetDivInfoNested(s))
+				anime.Producers = GetDivInfoNested(s.DOM)
 			case "Licensors":
-				fmt.Println("Licensors: ", GetDivInfoNested(s))
+				anime.Licensors = GetDivInfoNested(s.DOM)
 			case "Studios":
-				fmt.Println("Studios: ", GetDivInfoNested(s))
+				anime.Studios = GetDivInfoNested(s.DOM)
 			case "Source":
-				fmt.Println("Source: ", GetDivInfo(s.Text()))
+				anime.Source = GetDivInfo(s.Text)
 			case "Genres":
-				fmt.Println("Genres: ", GetDivInfoNested(s))
+				anime.Genres = GetDivInfoNested(s.DOM)
 			case "Themes":
-				fmt.Println("Themes: ", GetDivInfoNested(s))
+				anime.Themes = GetDivInfoNested(s.DOM)
 			case "Demographic":
-				fmt.Println("Demographic: ", GetDivInfoNested(s))
+				anime.Demographic = GetDivInfoNested(s.DOM)
 			case "Duration":
-				fmt.Println("Duration: ", GetDivInfo(s.Text()))
+				anime.Duration = GetDivInfo(s.Text)
 			case "Rating":
-				fmt.Println("Rating: ", GetDivInfo(s.Text()))
+				anime.Rating = GetDivInfo(s.Text)
+			case "Score":
+				anime.Score = GetDivInfo(s.Text)
+			case "Ranked":
+				anime.Ranked = GetDivInfo(s.Text)
+			case "Popularity":
+				anime.Popularity = GetDivInfo(s.Text)
+			case "Members":
+				anime.Members = GetDivInfo(s.Text)
+			case "Favorites":
+				anime.Favorites = GetDivInfo(s.Text)
 			}
 		})
+		animes = append(animes, anime)
+		count++
 	})
 
 	detailCollector.OnRequest(func(r *colly.Request) {
-		fmt.Println("Visiting", r.URL.String())
+		log.Println("Visiting", r.URL.String())
 	})
 
-	// Parse flag
-	var animeUrl string
-	flag.StringVar(&animeUrl, "animeUrl", "https://foo/bar", "The animeUrl page that you want to parse")
-	flag.Parse()
+	detailCollector.OnError(func(r *colly.Response, e error) {
+		log.Println("Error: ", e)
+	})
+
 	if animeUrl != "https://foo/bar" {
 		detailCollector.Visit(animeUrl)
 	}
+
 	c.Visit("https://myanimelist.net/anime.php#")
 	c.Wait()
 
+	// If all is parsed then ...
+	enc := json.NewEncoder(file)
+	enc.SetIndent("", "  ")
+	// Dump json to the standard output
+	enc.Encode(animes)
+	return
 }
