@@ -39,7 +39,7 @@ type Anime struct {
 }
 
 func main() {
-	fName := "animes.json"
+	fName := "/tmp/data/animes.json"
 	file, err := os.Create(fName)
 	if err != nil {
 		log.Fatalf("Cannot create file %q: %s\n", fName, err)
