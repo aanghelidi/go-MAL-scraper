@@ -82,9 +82,3 @@ To scrape 10 animes and save them to `animes.json`
 ```
 docker run go-mal-scraper -nAnimes 10
 ```
-
-Then using `docker ps -a` get your container name/id and :
-
-```
-docker cp <CONTAINER ID/NAME>:/root/animes.json <DST_FILE>
-```
