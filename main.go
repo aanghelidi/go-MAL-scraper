@@ -51,7 +51,6 @@ func main() {
 		// TODO: Add Redis Backend
 		// Local cache to prevent multiples download
 		colly.CacheDir("./my_anime_list_cache"),
-		colly.Async(true),
 		colly.MaxDepth(1),
 	)
 
@@ -59,7 +58,7 @@ func main() {
 		// Restrict domains to myanimelist.net
 		DomainGlob: "*myanimelist.*",
 		// Add a random delay
-		RandomDelay: 15 * time.Second,
+		RandomDelay: 30 * time.Second,
 		// Add parallelism
 		Parallelism: 2,
 	})
