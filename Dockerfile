@@ -9,6 +9,7 @@ ENV GO111MODULE=on \
 ENV SCRAPER_USER=scraper-user
 RUN groupadd --gid 1000 $SCRAPER_USER \
   && useradd --uid 1000 --gid $SCRAPER_USER --create-home $SCRAPER_USER
+
 ENV SCRAPER_HOME=/home/$SCRAPER_USER
 
 # Switch to non-root user
@@ -16,8 +17,6 @@ USER $SCRAPER_USER
 WORKDIR $SCRAPER_HOME
 
 # Copy file and buid app
-COPY go.sum go.mod ./
-RUN go mod download
 COPY . .
 RUN go build -o /go/bin main.go cleanUtils.go
 
@@ -37,4 +36,4 @@ RUN chown -R $SCRAPER_USER:users /tmp
 USER $SCRAPER_USER
 WORKDIR $SCRAPER_HOME
 COPY --from=builder /go/bin ./
-CMD ["./main"]
+ENTRYPOINT [ "./main" ]
