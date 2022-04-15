@@ -60,31 +60,25 @@ The following assume you have `Docker` installed.
 
 First build the image
 ```
-docker build . -f Dockerfile.local -t go-mal-scraper:latest
+docker build . -t go-mal-scraper:latest
 ```
 
 To run on all the website
 ```
-docker run go-mal-scraper
+docker run --name mal-scraper --mount type=bind,source="$(pwd)"/data,target=/tmp/data go-mal-scraper
 ```
 
 To display help
 ```
-docker run go-mal-scraper ./main -h
+docker run --name mal-scraper --mount type=bind,source="$(pwd)"/data,target=/tmp/data go-mal-scraper -h
 ```
 
 To scrape a single anime using its URL
 ```
-docker run go-mal-scraper -animeUrl https//...
+docker run --name mal-scraper --mount type=bind,source="$(pwd)"/data,target=/tmp/data go-mal-scraper -animeUrl https//...
 ```
 
 To scrape 10 animes and save them to `animes.json` 
 ```
-docker run go-mal-scraper -nAnimes 10
-```
-
-Then using `docker ps -a` get your container name/id and :
-
-```
-docker cp <CONTAINER ID/NAME>:/root/animes.json <DST_FILE>
+docker run --name mal-scraper --mount type=bind,source="$(pwd)"/data,target=/tmp/data go-mal-scraper -nAnimes 10
 ```

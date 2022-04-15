@@ -39,7 +39,7 @@ type Anime struct {
 }
 
 func main() {
-	fName := "animes.json"
+	fName := "/tmp/data/animes.json"
 	file, err := os.Create(fName)
 	if err != nil {
 		log.Fatalf("Cannot create file %q: %s\n", fName, err)
@@ -88,7 +88,7 @@ func main() {
 	var animeUrl string
 	var nAnimes int
 	flag.StringVar(&animeUrl, "animeUrl", "https://foo/bar", "The animeUrl page that you want to parse")
-	flag.IntVar(&nAnimes, "nAnimes", 0, "If different of 0 limit the numbers of animes to parse, defualt to 0")
+	flag.IntVar(&nAnimes, "nAnimes", 0, "If different of 0 limit the numbers of animes to parse, default to 0")
 	flag.Parse()
 
 	c.OnHTML("a[href][class=genre-name-link]", func(e *colly.HTMLElement) {
