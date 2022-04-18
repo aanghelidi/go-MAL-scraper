@@ -66,6 +66,12 @@ func TestAnimeJTitle(t *testing.T) {
 	}
 }
 
+func TestAnimeSynopsis(t *testing.T) {
+	wantedSynopsis := "my synopsis ..."
+	a := &Anime{}
+	f := Synopsis(wantedwantedSynopsis)
+	got := a.Synopsis
+	want := wantedSynopsis
 
 	if got != want {
 		t.Fatalf("want %s, but got %s", want, got)
