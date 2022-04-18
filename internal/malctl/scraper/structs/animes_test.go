@@ -52,3 +52,16 @@ func TestAnimeTitle(t *testing.T) {
 		t.Fatalf("want %s, but got %s", want, got)
 	}
 }
+
+func TestAnimeJTitle(t *testing.T) {
+	wantedTitle := "Jtitle"
+	a := &Anime{}
+	f := JTitle(wantedTitle)
+	f(a)
+	got := a.JTitle
+	want := "Jtitle"
+
+	if got != want {
+		t.Fatalf("want %s, but got %s", want, got)
+	}
+}
