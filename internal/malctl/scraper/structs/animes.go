@@ -59,3 +59,9 @@ func Title(title string) AnimeField {
 		a.Title = title
 	}
 }
+
+func JTitle(jtitle string) AnimeField {
+	return func(a *Anime) {
+		a.JTitle = jtitle
+	}
+}
