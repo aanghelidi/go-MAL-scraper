@@ -54,9 +54,9 @@ func TestAnimeTitle(t *testing.T) {
 }
 
 func TestAnimeJTitle(t *testing.T) {
-	wantedTitle := "Jtitle"
+	wantedJTitle := "Jtitle"
 	a := &Anime{}
-	f := JTitle(wantedTitle)
+	f := JTitle(wantedJTitle)
 	f(a)
 	got := a.JTitle
 	want := "Jtitle"
