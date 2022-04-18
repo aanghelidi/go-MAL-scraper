@@ -25,6 +25,9 @@ type Anime struct {
 	Members     string   `json:"members"`
 	Favorites   string   `json:"favourites"`
 }
+
+type AnimeField func(*Anime)
+
 func (a *Anime) Init() {
 	a.Title = ""
 	a.JTitle = ""
@@ -49,4 +52,10 @@ func (a *Anime) Init() {
 	a.Popularity = ""
 	a.Members = ""
 	a.Favorites = ""
+}
+
+func Title(title string) AnimeField {
+	return func(a *Anime) {
+		a.Title = title
+	}
 }
