@@ -8,35 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/NewMirai/go-MAL-scraper/internal/pkg/scraper/structs"
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/extensions"
 )
-
-type Anime struct {
-	Title       string   `json:"title"`
-	JTitle      string   `json:"j_title"`
-	Synopsis    string   `json:"synopsis"`
-	Type        string   `json:"type"`
-	NEpisodes   string   `json:"n_episodes"`
-	Status      string   `json:"status"`
-	Aired       string   `json:"aired"`
-	Premiered   string   `json:"premiered"`
-	Broadcast   string   `json:"broadcast"`
-	Producers   []string `json:"producers"`
-	Licensors   []string `json:"licensors"`
-	Studios     []string `json:"studios"`
-	Source      string   `json:"source"`
-	Genres      []string `json:"genres"`
-	Themes      []string `json:"themes"`
-	Demographic []string `json:"demographic"`
-	Duration    string   `json:"duration"`
-	Rating      string   `json:"rating"`
-	Score       string   `json:"score"`
-	Ranked      string   `json:"ranked"`
-	Popularity  string   `json:"popularity"`
-	Members     string   `json:"members"`
-	Favorites   string   `json:"favourites"`
-}
 
 func main() {
 	fName := "/tmp/data/animes.json"
@@ -82,7 +57,7 @@ func main() {
 	extensions.RandomUserAgent(detailCollector)
 
 	// Initialization
-	animes := make([]Anime, 0)
+	animes := make([]structs.Anime, 0)
 	count := 0
 	// Parse flag
 	var animeUrl string
