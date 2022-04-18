@@ -78,3 +78,16 @@ func TestAnimeSynopsis(t *testing.T) {
 		t.Fatalf("want %s, but got %s", want, got)
 	}
 }
+
+func TestAnimeType(t *testing.T) {
+	wantedType := "type"
+	a := &Anime{}
+	f := Type(wantedType)
+	f(a)
+	got := a.Type
+	want := wantedType
+
+	if got != want {
+		t.Fatalf("want %s, but got %s", want, got)
+	}
+}
