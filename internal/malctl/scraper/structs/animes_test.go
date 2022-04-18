@@ -69,7 +69,8 @@ func TestAnimeJTitle(t *testing.T) {
 func TestAnimeSynopsis(t *testing.T) {
 	wantedSynopsis := "my synopsis ..."
 	a := &Anime{}
-	f := Synopsis(wantedwantedSynopsis)
+	f := Synopsis(wantedSynopsis)
+	f(a)
 	got := a.Synopsis
 	want := wantedSynopsis
 
