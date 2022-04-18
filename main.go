@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NewMirai/go-MAL-scraper/internal/pkg/scraper/structs"
+	"github.com/NewMirai/go-MAL-scraper/internal/malctl/scraper/structs"
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/extensions"
 )
