@@ -71,3 +71,9 @@ func Synopsis(synopsis string) AnimeField {
 		a.Synopsis = synopsis
 	}
 }
+
+func Type(t string) AnimeField {
+	return func(a *Anime) {
+		a.Type = t
+	}
+}
